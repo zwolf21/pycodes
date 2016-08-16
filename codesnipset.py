@@ -16,7 +16,7 @@ def utbmv(url):
 			urlprs = urlparse(urlexp)
 			ret.append(urlunparse(urlprs))
 		return ret
-# ret = utbmv('https://www.youtube.com/watch?v=eTlDQuvs_SQ')
+# ret = utbmv('https://www.youtube.com/watch?v=abcd')
 
 
 ########## xls 파일로 부터 패턴 추출함수
@@ -33,7 +33,7 @@ def xlspget(xls, pat):
 				if p.findall(c.value):
 					retPat+=p.findall(c.value)
 	return retPat
-# ret = xlspget(r'C:\Users\HS\Desktop\양지병원원내약품리스트_20160621.xlsx', '\d{9}') # 엑셀파일에서 EDI 코드 추출하기
+# ret = xlspget(r'C:\Users\HS\Desktop\x.xlsx', '\d{9}') # 엑셀파일에서 EDI 코드 추출하기
 
 
 ########### doc 파일로부터 패턴 추출
@@ -57,7 +57,7 @@ def docpget(doc, pat):
 		
 
 
-# ret = docpget(r'C:\Users\HS\Desktop\보험코드.docx','\d{9}')
+# ret = docpget(r'C:\Users\HS\Desktop\edis.docx','\d{9}')
 # print(' '.join(ret))
 
 ######## 배열객체 정렬하여 출력하기
@@ -93,8 +93,8 @@ else:
 
 
 ### 다운로드시 프로그레스바 cmd창에 표현: 명령 프롬프트 상에서표현
-url='http://w2.hunet.hscdn.com/hunet/M_Learning/HLSC16743/High/01_01_01.mp4'
-to = 'C:\\Users\\HS\\Desktop\\test.mp4'
+url=''
+to = ''
 urlretrieve(url,to, lambda b,bs,ts: sys.stdout.write('\r[{}{}] {:0.0%}'.format('#'*round(b*bs/ts*20),'.'*(20-round(b*bs/ts*20)),b*bs/ts)))
 
 
@@ -157,6 +157,6 @@ def PDFRotator(pdf, rot=90, recursive=True):
 		for f in glob.glob(os.path.join(pdf,'*' if recursive else '*.pdf')):
 			PDFRotator(f, rot)
 
-tgtPath = r'C:\Users\HS\Documents\KSHP'
+tgtPath = r'C:\pdfPath'
 PDFRotator(tgtPath,recursive=False)
 
