@@ -164,26 +164,26 @@ PDFRotator(tgtPath,recursive=False)
 from functools import cmp_to_key
 from xlrd import open_workbook
 def sort_record(records, ordering=[]):
-    if not ordering:
-        return records
-    
-    def cmp_func(rec1, rec2):
-        o1, o2 = [], []
-        for rule in ordering:
-            if rule.startswith('-'):
-                rule = rule.strip('-')
-                v1, v2 = rec2[rule], rec1[rule]
-            else:
-                v1, v2 = rec1[rule], rec2[rule]
-            o1.append(v1) 
-            o2.append(v2)
-        return 1 if o1 > o2 else -1
-    return sorted(records, key=cmp_to_key(cmp_func))
+	if not ordering:
+		return records
+	
+	def cmp_func(rec1, rec2):
+		o1, o2 = [], []
+		for rule in ordering:
+			if rule.startswith('-'):
+				rule = rule.strip('-')
+				v1, v2 = rec2[rule], rec1[rule]
+			else:
+				v1, v2 = rec1[rule], rec2[rule]
+			o1.append(v1) 
+			o2.append(v2)
+		return 1 if o1 > o2 else -1
+	return sorted(records, key=cmp_to_key(cmp_func))
 
 def records_from(excel, sheet_index=0):
-    wb = open_workbook(excel)
-    ws = wb.sheet_by_index(sheet_index)
-    return [dict(zip(ws.row_values(0),ws.row_values(r))) for r in range(1, ws.nrows)]
+	wb = open_workbook(excel)
+	ws = wb.sheet_by_index(sheet_index)
+	return [dict(zip(ws.row_values(0),ws.row_values(r))) for r in range(1, ws.nrows)]
 
 
 path = '마약잔량.xls'
