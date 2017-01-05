@@ -160,25 +160,19 @@ def PDFRotator(pdf, rot=90, recursive=True):
 tgtPath = r'C:\pdfPath'
 PDFRotator(tgtPath,recursive=False)
 
+
 # 장고 스타일 정렬
-from functools import cmp_to_key
+# ret = sort_record(ret, ordering=['약품명', '-불출일자'])
+
 from xlrd import open_workbook
+
 def sort_record(records, ordering=[]):
-	if not ordering:
-		return records
-	
-	def cmp_func(rec1, rec2):
-		o1, o2 = [], []
-		for rule in ordering:
-			if rule.startswith('-'):
-				rule = rule.strip('-')
-				v1, v2 = rec2[rule], rec1[rule]
-			else:
-				v1, v2 = rec1[rule], rec2[rule]
-			o1.append(v1) 
-			o2.append(v2)
-		return 1 if o1 > o2 else -1
-	return sorted(records, key=cmp_to_key(cmp_func))
+    s = records
+    for col in reversed(ordering):
+        reverse = col.startswith('-')
+        col = col.strip('-')
+        s = sorted(s, key=lambda row:row[col], reverse=reverse)
+    return s
 
 def records_from(excel, sheet_index=0):
 	wb = open_workbook(excel)
@@ -235,7 +229,70 @@ class Crawler(object):
 
 
 
+# 엑셀 데이터 작업 
+from itertools import groupby
+from operator import itemgetter
 
+import xlrd
+
+class ExcelParser:
+
+	def __init__(self, xl_path = None, file_content=None, sheet_index=0, **extra_fields):
+		wb = xlrd.open_workbook(xl_path) if xl_path else xlrd.open_workbook(file_content=file_content)
+		ws = wb.sheet_by_index(sheet_index)
+		fields = ws.row_values(0)
+		self._records = [dict(zip(fields, ws.row_values(i))) for i in range(1, ws.nrows)]
+		for row in self._records:
+			row.update(**extra_fields)
+
+	def __getitem__(self, index):
+		return self._records[index]
+	
+	def __len__(self):
+		return len(self._records)
+
+	def __call__(self):
+		return self._records
+
+	def select(self, *fields, where=lambda row:row):
+		if not fields:
+			fields = self._records[0].keys()	
+		ret =  [{k:v for k, v in row.items() if k in fields} for row in self._records if where(row)]
+		self._records = ret
+		return self
+
+	def order_by(self, *rules):
+		for rule in reversed(rules):
+			rvs = rule.startswith('-')
+			rule = rule.strip('-')
+			self._records.sort(key=lambda x: x[rule], reverse=rvs)
+		return self
+			
+	def distinct(self, *cols):
+		ret = sorted(self._records, key= itemgetter(*cols))
+		self._records =  [next(l) for g, l in groupby(ret, key=itemgetter(*cols))]
+		return self
+	
+	def update(self, where=lambda row:row, **set):
+		for row in self._records:
+			if not where(row):
+				continue
+			for k, func in set.items():
+				row[k] = func(row)
+		return self
+	
+
+path = '마약잔량.xls'
+
+
+exl= ExcelParser(path, 잔여량=0) # adding extra fields
+
+exl.order_by('불출일자','-병동') # django style sort
+
+# chaining method
+exl.distinct('불출일자','병동').select('불출일자','병동','잔여량','집계량','총량', where=lambda x:x['불출일자']=='2016-06-01').update(잔여량=lambda row: float(row['집계량'])- float(row['총량']))
+
+print(exl())
 
 
 
