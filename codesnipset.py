@@ -285,10 +285,9 @@ class ExcelParser:
 		self._records.sort(key=itemgetter(field))
 		ret = []
 		sb = []
-		padhdr = self._records[0].keys()
 		for g, l in groupby(self._records, key=itemgetter(field)):
 			row = list(l)
-			padrow = dict(zip(padhdr, ['']*len(padhdr)))
+			padrow = {}.fromkeys(self._records[0].keys(),'')
 			sb.append(row)
 			d = {}
 			for k, func in having.items():
