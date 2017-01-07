@@ -280,7 +280,29 @@ class ExcelParser:
 			for k, func in set.items():
 				row[k] = func(row)
 		return self
+
+	def group_by(self, field, subtotal=False, **having):
+		self._records.sort(key=itemgetter(field))
+		ret = []
+		sb = []
+		padhdr = self._records[0].keys()
+		for g, l in groupby(self._records, key=itemgetter(field)):
+			row = list(l)
+			padrow = dict(zip(padhdr, ['']*len(padhdr)))
+			sb.append(row)
+			d = {}
+			for k, func in having.items():
+				s = func([float(e[k]) for e in row])
+				padrow[field] = g
+				padrow[k] = s
+				
+				d.setdefault(g,[]).append({k: s})
+			sb.append(padrow)
+			ret.append(d)
+		return sb if subtotal else ret
 	
+
+
 
 path = '마약잔량.xls'
 
@@ -290,15 +312,8 @@ exl= ExcelParser(path, 잔여량=0) # adding extra fields
 exl.order_by('불출일자','-병동') # django style sort
 
 # chaining method
-exl.distinct('불출일자','병동').select('불출일자','병동','잔여량','집계량','총량', where=lambda x:x['불출일자']=='2016-06-01').update(잔여량=lambda row: float(row['집계량'])- float(row['총량']))
-
-print(exl())
-
-
-
-
-
-
-
-
-
+exl = exl.select('불출일자','처방일자', '병동','약품명','잔여량','집계량','총량', where=lambda x: '2016-06-01' < x['불출일자'] < '2016-06-16' and x['처방일자']==x['불출일자'] and x['약품명']!='염산페치딘 주사 1ml').update(잔여량=lambda row: float(row['집계량'])- float(row['총량']))
+# groupby using sum, len...(Count)
+g=exl.group_by('약품명', subtotal=False, 잔여량=sum, 집계량=len)
+# print(exl())
+print(list(g))
