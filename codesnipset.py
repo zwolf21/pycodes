@@ -238,7 +238,7 @@ import xlrd
 class ExcelParser:
 
 	def __init__(self, xl_path = None, file_content=None, sheet_index=0, **extra_fields):
-		wb = xlrd.open_workbook(xl_path) if xl_path else xlrd.open_workbook(file_content=file_content)
+		wb = xlrd.open_workbook(xl_path) if xl_path else xlrd.open_workbook(file_contents=file_content)
 		ws = wb.sheet_by_index(sheet_index)
 		fields = ws.row_values(0)
 		self._records = [dict(zip(fields, ws.row_values(i))) for i in range(1, ws.nrows)]
