@@ -79,23 +79,23 @@ table =\
 
 #### 예외정보 잡아 내기
 
-import sys
-import traceback
+# import sys
+# import traceback
 
-try:
-    1/0
-except: 
-    type_err, val_err, trcbk = sys.exc_info()
-    # print(type_err.__name__, val_err,sep='\n')
-    traceback.print_exception(type_err, val_err, trcbk)
-else:
-    pass
+# try:
+#     1/0
+# except: 
+#     type_err, val_err, trcbk = sys.exc_info()
+#     # print(type_err.__name__, val_err,sep='\n')
+#     traceback.print_exception(type_err, val_err, trcbk)
+# else:
+#     pass
 
 
 ### 다운로드시 프로그레스바 cmd창에 표현: 명령 프롬프트 상에서표현
-url=''
-to = ''
-urlretrieve(url,to, lambda b,bs,ts: sys.stdout.write('\r[{}{}] {:0.0%}'.format('#'*round(b*bs/ts*20),'.'*(20-round(b*bs/ts*20)),b*bs/ts)))
+# url=''
+# to = ''
+# urlretrieve(url,to, lambda b,bs,ts: sys.stdout.write('\r[{}{}] {:0.0%}'.format('#'*round(b*bs/ts*20),'.'*(20-round(b*bs/ts*20)),b*bs/ts)))
 
 
 ## 테이블(리스트)를 csv 형식의 파일로 전환, 대상 파일 이름이 존재 하면 filename(n).csv 과 같이 넘버링하여 생성해 줌
@@ -132,7 +132,7 @@ newurl = urljoin(url,'d.html') # detail 이하 경로 d.html로 덮어씀
 
 ## 윈도우 cmd 명령어 실행 하기
 from subprocess import *
-print(check_output('dir', shell=True).decode('cp949'))
+# print(check_output('dir', shell=True).decode('cp949'))
 
 ## maketrans 사용
 trantab = ''.maketrans('abcdef', '123456')
@@ -141,7 +141,7 @@ trantab = ''.maketrans('abcdef', '123456')
 
 ## pdf 파일 회전 하기
 import tempfile, glob, os
-from PyPDF2 import PdfFileReader, PdfFileWriter
+# from PyPDF2 import PdfFileReader, PdfFileWriter
 def PDFRotator(pdf, rot=90, recursive=True):
     if pdf.endswith('.pdf'):            
         with tempfile.TemporaryFile() as tmp:
@@ -180,9 +180,9 @@ def records_from(excel, sheet_index=0):
     return [dict(zip(ws.row_values(0),ws.row_values(r))) for r in range(1, ws.nrows)]
 
 
-path = '마약잔량.xls'
-ret = records_from(path)
-ret = sort_record(ret, ordering=['약품명', '불출일자'])
+# path = '마약잔량.xls'
+# ret = records_from(path)
+# ret = sort_record(ret, ordering=['약품명', '불출일자'])
 
 
 # 테이블, url 크롤링
@@ -227,9 +227,26 @@ class Crawler(object):
                     ret+=[dict(zip(hdr_val, [rec for rec in rec('td')])) for rec in recs]
         return ret
 
-
-
-    
-
+# 단일 매개변수 리스트화 데코레이터 x -> (x, )
+import functools, itertools, collections
+def argpluralizer(*argnames):
+    def ismonoval(val):
+        return isinstance(val, str) or not isinstance(val, collections.Iterable)
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            new_args = []
+            for argname, arg in zip(func.__code__.co_varnames, args):
+                if argname in argnames:
+                    if ismonoval(arg):
+                        arg = arg,
+                    new_args.append(arg)
+            for argname, (key, val) in zip(func.__code__.co_varnames, kwargs.items()):
+                if argname in argnames:
+                    if ismonoval(val):
+                        kwargs[key] = val,
+            return func(*new_args, **kwargs)
+        return wrapper
+    return decorate
 
 
